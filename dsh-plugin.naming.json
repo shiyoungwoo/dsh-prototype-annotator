@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "policy": "dsh-plugin-naming/v1",
+  "plugin": {
+    "namespace": "shiyoungwoo",
+    "name": "prototype-annotator",
+    "coordinate": "shiyoungwoo/prototype-annotator",
+    "packageName": "@local/dsh-proto-annotate-spike"
+  },
+  "names": {
+    "pluginNames": ["dsh-proto-annotate-spike"],
+    "loaderIds": ["dsh-proto-annotate-spike"],
+    "services": [],
+    "tools": [],
+    "commands": [],
+    "skills": [],
+    "skillProviders": [],
+    "events": [],
+    "settingsNamespaces": [],
+    "routes": []
+  }
+}

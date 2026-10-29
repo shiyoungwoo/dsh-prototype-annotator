@@ -1,0 +1,36 @@
+{
+  "name": "@local/dsh-proto-annotate-spike",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Codex-style element annotations for DeepSeek Harness Desktop. Click a prototype element, describe the change, and send compact annotation chips with DOM context to your agent.",
+  "license": "MIT",
+  "author": "shiyoungwoo",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shiyoungwoo/dsh-prototype-annotator.git"
+  },
+  "homepage": "https://github.com/shiyoungwoo/dsh-prototype-annotator#readme",
+  "bugs": { "url": "https://github.com/shiyoungwoo/dsh-prototype-annotator/issues" },
+  "keywords": ["dsh", "dsh-plugin", "deepseek-harness", "annotation", "prototype", "element-picker", "desktop"],
+  "engines": { "node": ">=22.19.0", "dsh": "0.2.1-rc.3" },
+  "scripts": {
+    "check": "node --check index.js && node --check client.js",
+    "test": "node --test tests/delivery.test.mjs",
+    "test:package": "node scripts/check-package.mjs"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": ["index.js", "client.js", "cordis.patch.yml", "locale/*.json", "icon.svg", "README.en.md", "CHANGELOG.md", "dsh-plugin.naming.json"],
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-ui-sidebar-right", "@deepseek-ai/dsh-client-ui-sidebar-browser"]
+    }
+  }
+}
