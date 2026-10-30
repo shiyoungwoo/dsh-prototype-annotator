@@ -64,7 +64,7 @@ For migration from the local trial, remove the old local link in the plugin mana
 2. Click **批注** or press `Option+A`.
 3. Hover and click an element. Press `Esc` to cancel picking.
 4. Write the requested change. Click **完成** or press `Enter`; `Shift+Enter` inserts a newline. IME composition confirmation does not submit.
-5. Click the composer chip to review or delete individual annotations. More annotations increase the count on the same chip.
+5. The success notice closes automatically after 3 seconds. Click the composer chip to review or delete individual annotations. More annotations increase the count on the same chip.
 6. Add any ordinary message text and send. The sent message also renders as a compact chip with read-only details.
 
 If multiple composers are mounted, select the destination session in the panel. A submitting composer cannot receive annotations. Failed insertion keeps the annotation and reports the reason.

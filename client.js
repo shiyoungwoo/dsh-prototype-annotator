@@ -636,6 +636,12 @@ window.__ModuleLoader__.load({
           const [details, setDetails] = React.useState(null);
 
           React.useEffect(() => {
+            if (status !== t('ready')) return;
+            const timer = setTimeout(() => setStatus(''), 3000);
+            return () => clearTimeout(timer);
+          }, [status]);
+
+          React.useEffect(() => {
             openDetails = setDetails;
             return () => { if (openDetails === setDetails) openDetails = null; };
           }, []);

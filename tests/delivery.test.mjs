@@ -45,6 +45,18 @@ test('a finished annotation becomes one compact chip and keeps the existing draf
   assert.match(h.overlayText(), /注释已加入输入框/);
 });
 
+test('success notices disappear after three seconds for successive annotations without removing chips', async (t) => {
+  const h = await setup(t);
+  h.mountBridge('session-a');
+  for (const note of ['标题改为蓝色', '再缩小一点']) {
+    await annotate(h, note);
+    assert.match(h.overlayText(), /注释已加入输入框/);
+    await new Promise((resolve) => setTimeout(resolve, 3100));
+    assert.doesNotMatch(h.overlayText(), /注释已加入输入框/);
+  }
+  assert.equal(own(h, 'session-a')[0].label, '2 条注释');
+});
+
 test('a second annotation merges into the same chip and bumps its count', async (t) => {
   const h = await setup(t);
   h.mountBridge('session-a', { draft: '前文' });

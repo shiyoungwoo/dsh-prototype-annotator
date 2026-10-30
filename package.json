@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-proto-annotate-spike",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "description": "Codex-style element annotations for DeepSeek Harness Desktop. Click a prototype element, describe the change, and send compact annotation chips with DOM context to your agent.",
   "license": "MIT",

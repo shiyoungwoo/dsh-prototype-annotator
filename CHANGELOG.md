@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.2 — 2026-10-30
+
+- Dismiss the annotation-added success notice automatically after 3 seconds.
+
 ## 0.0.1 — 2026-10-29
 
 First public GitHub release for DSH Desktop `0.2.1-rc.3` on macOS.
