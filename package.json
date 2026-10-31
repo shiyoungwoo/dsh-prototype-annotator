@@ -12,7 +12,7 @@
   "homepage": "https://github.com/shiyoungwoo/dsh-prototype-annotator#readme",
   "bugs": { "url": "https://github.com/shiyoungwoo/dsh-prototype-annotator/issues" },
   "keywords": ["dsh", "dsh-plugin", "deepseek-harness", "annotation", "prototype", "element-picker", "desktop"],
-  "engines": { "node": ">=22.19.0", "dsh": "0.2.1-rc.3" },
+  "engines": { "node": ">=22.19.0", "dsh": ">=0.2.1-rc.3 <0.3.0" },
   "scripts": {
     "check": "node --check index.js && node --check client.js",
     "test": "node --test tests/delivery.test.mjs",
