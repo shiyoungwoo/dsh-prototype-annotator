@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Add a native session-header annotation button independent of sidebar DOM selectors, with session-specific delivery.
+- Recognize the collapsed sidebar control and avoid `:has()` for browser-toolbar discovery.
+
+- Open the note editor without waiting for optional screenshot capture.
+- Report selection errors and clear picker resources instead of leaving selection pending.
+- Ignore stale selection and screenshot results after cancellation or a new pick.
+- Use the preview iframe's DOM constructors when selecting its elements.
+- Ignore hidden toolbar anchors and keep the editor inside the viewport.
+- Keep unsent annotations open on outside clicks.
+- Report navigation, timeout, unrecognized elements, and missing selection results.
+
 ## 0.0.2 — 2026-10-30
 
 - Dismiss the annotation-added success notice automatically after 3 seconds.

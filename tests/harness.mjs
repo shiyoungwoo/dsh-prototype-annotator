@@ -278,25 +278,34 @@ export async function createHarness(options = {}) {
 
   const webview = {
     getBoundingClientRect: () => ({ left: 0, top: 0, right: 800, bottom: 600, width: 800, height: 600 }),
-    executeJavaScript: async () => options.pickedElement ?? {
-      tag: 'button',
-      selector: 'div.form > button.primary',
-      text: '保存',
-      rect: { x: 20, y: 30, width: 120, height: 32 },
-      style: { fontSize: '13px', color: 'rgb(47,111,235)', fontFamily: 'sans-serif', background: 'rgb(255,255,255)' },
-      page: 'http://localhost:4173/preview.html',
-      viewport: [1200, 800],
+    executeJavaScript: async (script) => {
+      if (script === 'window.__dshPrototypePickerCancel?.()') return null;
+      if (options.executePicker) return options.executePicker(script);
+      return options.pickedElement ?? {
+        tag: 'button',
+        selector: 'div.form > button.primary',
+        text: '保存',
+        rect: { x: 20, y: 30, width: 120, height: 32 },
+        style: { fontSize: '13px', color: 'rgb(47,111,235)', fontFamily: 'sans-serif', background: 'rgb(255,255,255)' },
+        page: 'http://localhost:4173/preview.html',
+        viewport: [1200, 800],
+      };
     },
-    capturePage: async () => ({
+    capturePage: options.capturePage ?? (async () => ({
       toDataURL: () => options.imageDataUrl
         ?? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-    }),
+    })),
   };
 
+  const toolButtons = (options.toolButtonRects ?? []).map((rect) => ({
+    getBoundingClientRect: () => rect,
+    remove() {},
+  }));
   const documentStub = {
-    querySelector: () => null,
+    querySelector: (selector) => selector.startsWith('.dsh-pa-tool-btn') ? toolButtons[0] ?? null : null,
     querySelectorAll: (selector) => {
-      if (typeof selector === 'string' && selector.includes('webview')) return [webview];
+      if (selector.startsWith('.dsh-pa-tool-btn')) return toolButtons;
+      if (typeof selector === 'string' && selector.includes('webview')) return options.noPage ? [] : [webview];
       return [];
     },
     createElement: () => ({
@@ -314,8 +323,8 @@ export async function createHarness(options = {}) {
 
   const windowListeners = new Map();
   const windowStub = {
-    innerWidth: 1200,
-    innerHeight: 800,
+    innerWidth: options.innerWidth ?? 1200,
+    innerHeight: options.innerHeight ?? 800,
     addEventListener(type, handler) {
       if (!windowListeners.has(type)) windowListeners.set(type, new Set());
       windowListeners.get(type).add(handler);
@@ -432,6 +441,7 @@ export async function createHarness(options = {}) {
 
   const overlayComponent = slots.get('shell.overlay');
   const bridgeComponent = slots.get('conversation.input.left');
+  const launcherComponent = slots.get('conversation.session.header.utilities');
   if (!overlayComponent) throw new Error('client.js did not register the shell.overlay slot');
   if (!bridgeComponent) throw new Error('client.js did not register the conversation.input.left slot');
 
@@ -547,6 +557,14 @@ export async function createHarness(options = {}) {
   }
 
   const overlayInstance = react.mount(overlayComponent, {});
+  const launchers = [];
+  function mountLauncher(sessionId = 'session-a') {
+    if (!launcherComponent) return null;
+    const instance = react.mount(launcherComponent, { sessionId });
+    launchers.push(instance);
+    return instance;
+  }
+  const launcherInstance = mountLauncher();
 
   const settle = async (turns = 6) => {
     for (let i = 0; i < turns; i += 1) await new Promise((resolve) => setTimeout(resolve, 0));
@@ -572,6 +590,9 @@ export async function createHarness(options = {}) {
     log,
     window: windowStub,
     overlayInstance,
+    launcherInstance,
+    launcher: (instance = launcherInstance) => findAll(instance?.output, (node) => node.type === 'button')[0],
+    mountLauncher,
     mountBridge,
     ensureSession,
     settle,
@@ -579,6 +600,7 @@ export async function createHarness(options = {}) {
     overlayText: () => textOf(overlayInstance.output),
     finishButton: () => findAll(overlayInstance.output, (node) => node.type === 'button' && node.props?.className === 'dsh-pa-primary-btn')[0],
     textarea: () => findAll(overlayInstance.output, (node) => node.type === 'textarea')[0],
+    popover: () => findAll(overlayInstance.output, (node) => node.props?.className === 'dsh-pa-popover')[0],
     findButtons: (label) => findAll(overlayInstance.output, (node) => node.type === 'button' && textOf(node) === label),
     select: () => findAll(overlayInstance.output, (node) => node.type === 'select')[0],
     async pick() {
@@ -622,6 +644,7 @@ export async function createHarness(options = {}) {
     },
     dispose() {
       for (const instance of bridges.values()) react.dispose(instance);
+      for (const instance of launchers) react.dispose(instance);
       react.dispose(overlayInstance);
     },
   };

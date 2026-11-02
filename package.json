@@ -15,7 +15,7 @@
   "engines": { "node": ">=22.19.0", "dsh": ">=0.2.1-rc.3 <0.3.0" },
   "scripts": {
     "check": "node --check index.js && node --check client.js",
-    "test": "node --test tests/delivery.test.mjs",
+    "test": "node --test tests/delivery.test.mjs tests/picker.test.mjs",
     "test:package": "node scripts/check-package.mjs"
   },
   "exports": {

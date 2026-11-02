@@ -10,6 +10,7 @@ window.__ModuleLoader__.load({
     const CANCEL = 'window.__dshPrototypePickerCancel?.()';
     const SOURCE = 'local-prototype-annotation';
     let openDetails = null;
+    let pickerControl = null;
 
     function readAnnotations(ref) {
       const data = JSON.parse(ref);
@@ -209,9 +210,14 @@ window.__ModuleLoader__.load({
     }
 
     // Serialized into the Desktop guest webview
-    function guestPicker() {
-      window.__dshPrototypePickerCancel?.();
-      return new Promise((resolve) => {
+    function guestPicker(win = window) {
+      const { document, Element, ShadowRoot, CSS } = win;
+      const { innerWidth, innerHeight, location } = win;
+      const getComputedStyle = win.getComputedStyle.bind(win);
+      const addEventListener = win.addEventListener.bind(win);
+      const removeEventListener = win.removeEventListener.bind(win);
+      win.__dshPrototypePickerCancel?.();
+      return new Promise((resolve, reject) => {
         const host = document.createElement('div');
         host.style.cssText = 'all:initial;position:fixed;inset:0;pointer-events:none;z-index:2147483647';
         const shadow = host.attachShadow({ mode: 'closed' });
@@ -254,46 +260,52 @@ window.__ModuleLoader__.load({
           tip.textContent = el.tagName.toLowerCase() + '  ' + Math.round(r.width) + '×' + Math.round(r.height) + '\n' + cs.color + ' · ' + cs.fontSize + ' ' + (cs.fontFamily || '').split(',')[0];
           Object.assign(tip.style, { display: 'block', left: Math.min(Math.max(8, r.left), Math.max(8, innerWidth - 300)) + 'px', top: (r.bottom + 60 < innerHeight ? r.bottom + 6 : Math.max(8, r.top - 54)) + 'px' });
         };
-        const finish = (value) => {
+        const finish = (value, error) => {
           if (done) return;
           done = true;
           removeEventListener('pointermove', move, true);
           for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup']) removeEventListener(type, soft, true);
           removeEventListener('click', click, true);
           removeEventListener('keydown', key, true);
-          removeEventListener('pagehide', cancel);
+          removeEventListener('pagehide', pagehide);
           clearTimeout(timer);
           host.remove();
-          delete window.__dshPrototypePickerCancel;
-          resolve(value);
+          delete win.__dshPrototypePickerCancel;
+          if (error) reject(error);
+          else resolve(value);
         };
         const suppress = (e) => { e.preventDefault(); e.stopImmediatePropagation(); };
         const soft = (e) => { e.stopImmediatePropagation(); };
         const cancel = () => finish(null);
+        const pagehide = () => finish(null, new Error('页面已跳转或刷新，请在页面加载后重新点选。'));
         const click = (e) => {
           suppress(e);
-          const el = targetOf(e);
-          if (!el) return cancel();
-          const r = el.getBoundingClientRect();
-          const cs = getComputedStyle(el);
-          finish({
-            tag: el.tagName.toLowerCase(),
-            selector: selectorOf(el),
-            text: (el.innerText || el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 160),
-            rect: { x: r.left, y: r.top, width: r.width, height: r.height },
-            style: { fontSize: cs.fontSize, color: cs.color, fontFamily: cs.fontFamily, background: cs.backgroundColor },
-            page: location.href,
-            viewport: [innerWidth, innerHeight],
-          });
+          try {
+            const el = targetOf(e);
+            if (!el) throw new Error('未识别到可批注的元素，请重新点选。');
+            const r = el.getBoundingClientRect();
+            const cs = getComputedStyle(el);
+            finish({
+              tag: el.tagName.toLowerCase(),
+              selector: selectorOf(el),
+              text: (el.innerText || el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 160),
+              rect: { x: r.left, y: r.top, width: r.width, height: r.height },
+              style: { fontSize: cs.fontSize, color: cs.color, fontFamily: cs.fontFamily, background: cs.backgroundColor },
+              page: location.href,
+              viewport: [innerWidth, innerHeight],
+            });
+          } catch (error) {
+            finish(null, error);
+          }
         };
         const key = (e) => { if (e.key === 'Escape') { suppress(e); cancel(); } };
-        const timer = setTimeout(cancel, 120000);
-        window.__dshPrototypePickerCancel = cancel;
+        const timer = setTimeout(() => finish(null, new Error('点选已超时，请重新点击「批注」。')), 120000);
+        win.__dshPrototypePickerCancel = cancel;
         addEventListener('pointermove', move, true);
         for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup']) addEventListener(type, soft, true);
         addEventListener('click', click, true);
         addEventListener('keydown', key, true);
-        addEventListener('pagehide', cancel);
+        addEventListener('pagehide', pagehide);
       });
     }
 
@@ -301,95 +313,7 @@ window.__ModuleLoader__.load({
       const win = ifr.contentWindow;
       const doc = ifr.contentDocument;
       if (!win || !doc) return Promise.reject(new Error('无法访问 iframe 内部 DOM（可能处于跨域或沙箱保护中）'));
-      win.__dshPrototypePickerCancel?.();
-
-      return new Promise((resolve) => {
-        const host = doc.createElement('div');
-        host.style.cssText = 'all:initial;position:fixed;inset:0;pointer-events:none;z-index:2147483647';
-        const shadow = host.attachShadow({ mode: 'closed' });
-        const box = doc.createElement('div');
-        const tip = doc.createElement('div');
-        box.style.cssText = 'position:fixed;box-sizing:border-box;border:2px solid #2f6feb;background:#2f6feb20;display:none;pointer-events:none';
-        tip.style.cssText = 'position:fixed;background:#fff;color:#111;font:12px/1.5 monospace;padding:6px 8px;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,0.25);white-space:pre;max-width:calc(100vw - 16px);overflow:hidden;display:none;pointer-events:none;z-index:2147483647';
-        shadow.append(box, tip);
-        (doc.body || doc.documentElement).append(host);
-        let done = false;
-
-        const selectorOf = (el) => {
-          const root = el.getRootNode();
-          const parts = [];
-          let node = el;
-          while (node instanceof Element) {
-            let part = node.tagName.toLowerCase();
-            if (node.id && root.querySelectorAll('#' + CSS.escape(node.id)).length === 1) {
-              parts.unshift('#' + CSS.escape(node.id));
-              break;
-            }
-            part += [...node.classList].slice(0, 2).map((c) => '.' + CSS.escape(c)).join('');
-            const parent = node.parentElement;
-            if (parent) {
-              const same = [...parent.children].filter((c) => c.tagName === node.tagName);
-              if (same.length > 1) part += ':nth-of-type(' + (same.indexOf(node) + 1) + ')';
-            }
-            parts.unshift(part);
-            node = parent;
-          }
-          return parts.join(' > ');
-        };
-
-        const targetOf = (e) => e.composedPath().find((item) => item instanceof Element && item !== host);
-        const move = (e) => {
-          const el = targetOf(e);
-          if (!el) return;
-          const r = el.getBoundingClientRect();
-          const cs = win.getComputedStyle(el);
-          Object.assign(box.style, { display: 'block', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' });
-          tip.textContent = el.tagName.toLowerCase() + '  ' + Math.round(r.width) + '×' + Math.round(r.height) + '\n' + cs.color + ' · ' + cs.fontSize + ' ' + (cs.fontFamily || '').split(',')[0];
-          Object.assign(tip.style, { display: 'block', left: Math.min(Math.max(8, r.left), Math.max(8, win.innerWidth - 300)) + 'px', top: (r.bottom + 60 < win.innerHeight ? r.bottom + 6 : Math.max(8, r.top - 54)) + 'px' });
-        };
-
-        const finish = (value) => {
-          if (done) return;
-          done = true;
-          win.removeEventListener('pointermove', move, true);
-          for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup']) win.removeEventListener(type, soft, true);
-          win.removeEventListener('click', click, true);
-          win.removeEventListener('keydown', key, true);
-          win.removeEventListener('pagehide', cancel);
-          clearTimeout(timer);
-          host.remove();
-          delete win.__dshPrototypePickerCancel;
-          resolve(value);
-        };
-
-        const suppress = (e) => { e.preventDefault(); e.stopImmediatePropagation(); };
-        const soft = (e) => { e.stopImmediatePropagation(); };
-        const cancel = () => finish(null);
-        const click = (e) => {
-          suppress(e);
-          const el = targetOf(e);
-          if (!el) return cancel();
-          const r = el.getBoundingClientRect();
-          const cs = win.getComputedStyle(el);
-          finish({
-            tag: el.tagName.toLowerCase(),
-            selector: selectorOf(el),
-            text: (el.innerText || el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 160),
-            rect: { x: r.left, y: r.top, width: r.width, height: r.height },
-            style: { fontSize: cs.fontSize, color: cs.color, fontFamily: cs.fontFamily, background: cs.backgroundColor },
-            page: win.location.href,
-            viewport: [win.innerWidth, win.innerHeight],
-          });
-        };
-        const key = (e) => { if (e.key === 'Escape') { suppress(e); cancel(); } };
-        const timer = setTimeout(cancel, 120000);
-        win.__dshPrototypePickerCancel = cancel;
-        win.addEventListener('pointermove', move, true);
-        for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup']) win.addEventListener(type, soft, true);
-        win.addEventListener('click', click, true);
-        win.addEventListener('keydown', key, true);
-        win.addEventListener('pagehide', cancel);
-      });
+      return guestPicker(win);
     }
 
     function InputBridge(props) {
@@ -486,6 +410,8 @@ window.__ModuleLoader__.load({
         position: fixed;
         z-index: 10020;
         width: min(350px, calc(100vw - 32px));
+        box-sizing: border-box;
+        pointer-events: auto;
         padding: 12px 14px;
         background: var(--dsw-alias-bg-base, #fff);
         border: 1px solid var(--dsw-alias-border-l2, #e5e5e5);
@@ -618,6 +544,30 @@ window.__ModuleLoader__.load({
         ctx.effect(() => ctx.locale.register('local-prototype-annotation', 'en', dict.en));
         const t = ctx.locale.bind('local-prototype-annotation');
 
+        // This entry belongs to the native header, independent of sidebar DOM selectors.
+        function AnnotationLauncher({ sessionId }) {
+          React.useSyncExternalStore((fn) => { listeners.add(fn); return () => listeners.delete(fn); }, () => version);
+          React.useSyncExternalStore(ctx.locale.subscribe.bind(ctx.locale), ctx.locale.getSnapshot.bind(ctx.locale));
+          return h('button', {
+            type: 'button',
+            className: 'dsh-pa-launcher',
+            'aria-label': t('launch'),
+            'aria-pressed': pickerControl?.isPicking ?? false,
+            title: t('launch') + ' (Option+A / Alt+A)',
+            disabled: pickerControl === null,
+            onClick: () => pickerControl?.toggle(sessionId),
+            style: {
+              display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0,
+              height: '26px', padding: '0 8px', borderRadius: '6px',
+              border: '1px solid var(--dsw-alias-border-l2, #ddd)',
+              background: 'var(--dsw-alias-bg-layer-1, #fff)',
+              color: 'var(--dsw-alias-brand-primary, #2f6feb)',
+              font: '500 12px system-ui, sans-serif', cursor: 'pointer', pointerEvents: 'auto',
+            },
+          }, h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, 'aria-hidden': true },
+            h('path', { d: 'M8 3H3v5M16 3h5v5M3 16v5h5m13-5v5h-5M9 8l9 7-5 1-2 5z' })), t('launch'));
+        }
+
         function AnnotationOverlay() {
           React.useSyncExternalStore((fn) => { listeners.add(fn); return () => listeners.delete(fn); }, () => version);
           React.useSyncExternalStore(ctx.locale.subscribe.bind(ctx.locale), ctx.locale.getSnapshot.bind(ctx.locale));
@@ -631,6 +581,7 @@ window.__ModuleLoader__.load({
           const finishing = React.useRef(false);
           const delivery = React.useRef(null);
           const activeTarget = React.useRef(null);
+          const pickAttempt = React.useRef(0);
           const textareaRef = React.useRef(null);
           const mounted = React.useRef(true);
           const [details, setDetails] = React.useState(null);
@@ -669,6 +620,7 @@ window.__ModuleLoader__.load({
           const selected = entries.length === 1 ? entries[0] : entries.find((entry) => entry.sessionId === chosen) || null;
 
           const cancelPick = React.useCallback(() => {
+            pickAttempt.current += 1;
             if (activeTarget.current) {
               if (activeTarget.current.type === 'webview') {
                 activeTarget.current.element.executeJavaScript(CANCEL).catch(() => {});
@@ -691,29 +643,20 @@ window.__ModuleLoader__.load({
               return;
             }
 
+            cancelPick();
+            const attempt = pickAttempt.current;
+            const isCurrent = () => mounted.current && pickAttempt.current === attempt;
             setIsPicking(true);
             setResult(null);
             setStatus('');
 
             try {
               let element = null;
-              let image = null;
 
               if (wv) {
                 activeTarget.current = { type: 'webview', element: wv };
                 element = await wv.executeJavaScript('(' + guestPicker.toString() + ')()', true);
-                if (!mounted.current) return;
-                if (!element) {
-                  setIsPicking(false);
-                  return;
-                }
-                try {
-                  const r = element.rect;
-                  const x = Math.max(0, Math.floor(r.x - 8)), y = Math.max(0, Math.floor(r.y - 8));
-                  const width = Math.min(element.viewport[0], Math.ceil(r.x + r.width + 8)) - x;
-                  const height = Math.min(element.viewport[1], Math.ceil(r.y + r.height + 8)) - y;
-                  if (width > 0 && height > 0) image = (await wv.capturePage({ x, y, width, height })).toDataURL();
-                } catch {}
+                if (!isCurrent()) return;
               } else if (ifr) {
                 activeTarget.current = { type: 'iframe', element: ifr };
                 if (isIframeSandboxed(ifr)) {
@@ -743,34 +686,65 @@ window.__ModuleLoader__.load({
                 if (!freshIfr || isIframeSandboxed(freshIfr)) {
                   throw new Error('当前 HTML 预览处于沙箱中，请先点击页面上方的「临时解锁」，或在浏览器中打开网址');
                 }
+                if (!isCurrent()) return;
+                activeTarget.current = { type: 'iframe', element: freshIfr };
                 element = await runIframePicker(freshIfr);
-                if (!mounted.current) return;
-                if (!element) {
-                  setIsPicking(false);
-                  return;
-                }
+                if (!isCurrent()) return;
               }
 
               if (!element || typeof element.selector !== 'string') {
-                setIsPicking(false);
+                setStatus('点选已结束，未收到元素。请重新点击「批注」后选择元素。');
                 return;
               }
 
-              const btn = document.querySelector('.dsh-pa-tool-btn.dsh-pa-active') || document.querySelector('.dsh-pa-tool-btn');
-              const btnRect = btn?.getBoundingClientRect();
-              const popoverPos = btnRect ? {
-                top: Math.round(btnRect.bottom + 6),
-                right: Math.max(12, Math.round(window.innerWidth - btnRect.right)),
-              } : { top: 86, right: 24 };
+              const buttons = [...document.querySelectorAll('.dsh-pa-tool-btn.dsh-pa-active'), ...document.querySelectorAll('.dsh-pa-tool-btn'), ...document.querySelectorAll('.dsh-pa-launcher')];
+              const btnRect = buttons.map((btn) => btn.getBoundingClientRect()).find((r) =>
+                r.width > 0 && r.height > 0 && r.right > 0 && r.bottom > 0 && r.left < window.innerWidth && r.top < window.innerHeight);
+              const margin = 16;
+              const width = Math.min(350, window.innerWidth - margin * 2);
+              const top = Math.max(margin, Math.min(btnRect ? Math.round(btnRect.bottom + 6) : 86, window.innerHeight - margin - 240));
+              const right = Math.max(margin, Math.min(btnRect ? Math.round(window.innerWidth - btnRect.right) : 24, window.innerWidth - margin - width));
+              const popoverPos = { top, right, maxHeight: window.innerHeight - margin - top };
 
-              setResult({ element, image, popoverPos });
+              const picked = { element, image: null, popoverPos };
+              setResult(picked);
+              // Preview capture is optional; it must never delay the note editor.
+              if (wv) {
+                void Promise.resolve().then(async () => {
+                  const r = element.rect;
+                  const x = Math.max(0, Math.floor(r.x - 8)), y = Math.max(0, Math.floor(r.y - 8));
+                  const width = Math.min(element.viewport[0], Math.ceil(r.x + r.width + 8)) - x;
+                  const height = Math.min(element.viewport[1], Math.ceil(r.y + r.height + 8)) - y;
+                  if (width <= 0 || height <= 0 || !isCurrent()) return;
+                  const image = (await wv.capturePage({ x, y, width, height })).toDataURL();
+                  if (isCurrent()) setResult((current) => current === picked ? { ...picked, image } : current);
+                }).catch(() => { /* An unavailable preview does not invalidate the selected element. */ });
+              }
             } catch (error) {
-              if (mounted.current) setStatus(String(error.message || error));
+              if (isCurrent()) setStatus('点选失败：' + String(error.message || error));
             } finally {
-              activeTarget.current = null;
-              if (mounted.current) setIsPicking(false);
+              if (isCurrent()) {
+                activeTarget.current = null;
+                setIsPicking(false);
+              }
             }
-          }, [t]);
+          }, [t, cancelPick]);
+
+          React.useEffect(() => {
+            const control = {
+              isPicking,
+              toggle(sessionId) {
+                setChosen(sessionId);
+                if (isPicking) cancelPick();
+                else void startPick();
+              },
+            };
+            pickerControl = control;
+            notify();
+            return () => {
+              if (pickerControl === control) { pickerControl = null; notify(); }
+            };
+          }, [isPicking, cancelPick, startPick]);
 
           // Global shortcut: Option+A (or Alt+A) to toggle picking
           React.useEffect(() => {
@@ -815,7 +789,8 @@ window.__ModuleLoader__.load({
               // Target 1: Right sidebar panel chrome controls (directly left of [⛶] fullscreen button)
               try {
                 const targetBtn = document.querySelector('button[data-sidebar-right-mode]')
-                  || document.querySelector('button[data-sidebar-right-toggle]');
+                  || document.querySelector('button[data-sidebar-right-toggle]')
+                  || document.querySelector('button[data-sidebar-right-expand]');
                 if (targetBtn && targetBtn.parentElement) {
                   let btn = targetBtn.parentElement.querySelector('.dsh-pa-tab-btn');
                   if (!btn) {
@@ -870,8 +845,7 @@ window.__ModuleLoader__.load({
 
               // Target 4: Browser body form (Browser tab toolbar, right next to reload button)
               try {
-                const browserToolbar = document.querySelector('form:has(input[class*="address"]), form:has(button[aria-label="reload"])')
-                  || document.querySelector('input[class*="address"]')?.closest('form')
+                const browserToolbar = document.querySelector('input[class*="address"]')?.closest('form')
                   || document.querySelector('webview')?.closest('[class*="root"]')?.querySelector('form')
                   || document.querySelector('[data-sidebar-browser-frame="webview"]')?.closest('[class*="root"]')?.querySelector('form');
                 if (browserToolbar) {
@@ -903,27 +877,19 @@ window.__ModuleLoader__.load({
 
           // Auto-focus textarea when popover opens
           React.useEffect(() => {
-            if (result) {
-              setTimeout(() => textareaRef.current?.focus(), 50);
-            }
-          }, [result]);
+            if (!result) return;
+            const timer = setTimeout(() => textareaRef.current?.focus(), 50);
+            return () => clearTimeout(timer);
+          }, [result?.element]);
 
-          // Click outside or Escape to close popover
+          // Keep unsent annotations open when focus returns from the guest page.
           React.useEffect(() => {
             if (!result) return;
-            const onDown = (e) => {
-              if (finishing.current || e.target.closest?.('.dsh-pa-popover') || e.target.closest?.('.dsh-pa-tool-btn')) return;
-              setResult(null);
-            };
             const onKey = (e) => {
               if (e.key === 'Escape' && !finishing.current) setResult(null);
             };
-            window.addEventListener('mousedown', onDown, true);
             window.addEventListener('keydown', onKey, true);
-            return () => {
-              window.removeEventListener('mousedown', onDown, true);
-              window.removeEventListener('keydown', onKey, true);
-            };
+            return () => window.removeEventListener('keydown', onKey, true);
           }, [result]);
 
           React.useEffect(() => {
@@ -1030,7 +996,7 @@ window.__ModuleLoader__.load({
             ) : null,
             result ? h('div', {
               className: 'dsh-pa-popover',
-              style: { top: result.popoverPos.top + 'px', right: result.popoverPos.right + 'px' },
+              style: { top: result.popoverPos.top + 'px', right: result.popoverPos.right + 'px', maxHeight: result.popoverPos.maxHeight + 'px' },
             },
               h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' } },
                 h('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
@@ -1132,6 +1098,7 @@ window.__ModuleLoader__.load({
 
         ctx.slots.inject('conversation.user.text.node', () => ctx.slots.register({ name: 'conversation.user.text.node', key: TRANSCRIPT_RULE, priority: 100 }, SentAnnotations));
         ctx.slots.inject('shell.overlay', () => ctx.slots.register({ name: 'shell.overlay', id: 'local-prototype-annotation' }, AnnotationOverlay));
+        ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({ name: 'conversation.session.header.utilities', id: 'local-prototype-annotation-launcher', order: 15 }, AnnotationLauncher));
         ctx.slots.inject('conversation.input.left', () => ctx.slots.register({ name: 'conversation.input.left', id: 'local-prototype-annotation-bridge' }, InputBridge));
       },
     };

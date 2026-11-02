@@ -28,6 +28,6 @@ for (const file of ['client.js', 'index.js', 'cordis.patch.yml']) {
 run(process.execPath, ['--check', 'client.js'], unpacked);
 // Keep tests outside the package's shipped file list, but exercise the unpacked runtime.
 cpSync(path.join(root, 'tests'), path.join(unpacked, 'tests'), { recursive: true });
-process.stdout.write(run(process.execPath, ['--test', 'tests/delivery.test.mjs'], unpacked));
+process.stdout.write(run(process.execPath, ['--test', 'tests/delivery.test.mjs', 'tests/picker.test.mjs'], unpacked));
 console.log(`Package smoke passed: ${packed.filename} (${packed.entryCount} files)`);
 console.log(`Artifact: ${tarball}`);
