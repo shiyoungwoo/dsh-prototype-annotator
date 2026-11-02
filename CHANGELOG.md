@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.0.3 — 2026-11-02
 
 - Add a native session-header annotation button independent of sidebar DOM selectors, with session-specific delivery.
 - Recognize the collapsed sidebar control and avoid `:has()` for browser-toolbar discovery.
