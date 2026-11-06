@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.4 — 2026-11-06
+
+- Move the annotation entry from the conversation header to the sidebar document-preview toolbar.
+- Mount browser annotation buttons beside each preview's address field; avoid conversation-header sidebar toggles.
+
 ## 0.0.3 — 2026-11-02
 
 - Add a native session-header annotation button independent of sidebar DOM selectors, with session-specific delivery.

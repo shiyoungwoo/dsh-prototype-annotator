@@ -301,22 +301,68 @@ export async function createHarness(options = {}) {
     getBoundingClientRect: () => rect,
     remove() {},
   }));
+  // Native browser toolbar structure from DSH 0.2.1-rc.5, including the address wrapper.
+  function toolbarFixture() {
+    const children = [];
+    const addressBox = { className: 'k_IHJa_addressBox' };
+    const address = { className: 'k_IHJa_address', parentElement: addressBox, closest: (selector) => selector === 'form' ? toolbar : null };
+    const toolbar = {
+      children,
+      address,
+      querySelector(selector) {
+        if (selector === '[class*="addressBox"]') return addressBox;
+        if (selector === 'input') return address;
+        return children.find((child) => child.className?.split(' ').includes(selector.slice(1))) ?? null;
+      },
+      insertBefore(child, before) {
+        if (!children.includes(before)) throw new Error('reference is not a toolbar child');
+        children.splice(children.indexOf(before), 0, child);
+        child.parentElement = toolbar;
+      },
+      appendChild(child) { children.push(child); child.parentElement = toolbar; },
+    };
+    children.push(addressBox);
+    return toolbar;
+  }
+  const browserToolbars = Array.from({ length: options.browserToolbars ?? 0 }, toolbarFixture);
+  const conversationChrome = toolbarFixture();
+  const chromeToggle = { parentElement: conversationChrome };
+  const injectedButtons = () => [...browserToolbars, conversationChrome].flatMap((bar) => bar.children).filter((child) => child.className?.includes('dsh-pa-tool-btn'));
   const documentStub = {
-    querySelector: (selector) => selector.startsWith('.dsh-pa-tool-btn') ? toolButtons[0] ?? null : null,
+    querySelector: (selector) => {
+      if (selector.startsWith('.dsh-pa-tool-btn')) return toolButtons[0] ?? injectedButtons()[0] ?? null;
+      if (selector === 'input[class*="address"]') return browserToolbars[0]?.address ?? null;
+      if (selector === 'button[data-sidebar-right-toggle]') return chromeToggle;
+      return null;
+    },
     querySelectorAll: (selector) => {
-      if (selector.startsWith('.dsh-pa-tool-btn')) return toolButtons;
+      if (selector.startsWith('.dsh-pa-tool-btn')) return [...toolButtons, ...injectedButtons()];
+      if (selector === 'input[class*="address"]') return browserToolbars.map((bar) => bar.address);
       if (typeof selector === 'string' && selector.includes('webview')) return options.noPage ? [] : [webview];
       return [];
     },
-    createElement: () => ({
-      style: {},
-      setAttribute() {},
-      append() {},
-      appendChild() {},
-      remove() {},
-      addEventListener() {},
-      removeEventListener() {},
-    }),
+    createElement: () => {
+      const span = { textContent: '批注' };
+      const node = {
+        style: {}, className: '',
+        classList: {
+          toggle(cls, active) {
+            const classes = new Set(node.className.split(' '));
+            if (active) classes.add(cls); else classes.delete(cls);
+            node.className = [...classes].join(' ');
+          },
+        },
+        querySelector: (selector) => selector === 'span' ? span : null,
+        getBoundingClientRect: () => ({ left: 850, top: 40, right: 920, bottom: 70, width: 70, height: 30 }),
+        setAttribute() {}, append() {}, appendChild() {},
+        remove() {
+          const children = node.parentElement?.children;
+          if (children) children.splice(children.indexOf(node), 1);
+        },
+        addEventListener() {}, removeEventListener() {},
+      };
+      return node;
+    },
     body: { append() {} },
     documentElement: { append() {} },
   };
@@ -441,7 +487,7 @@ export async function createHarness(options = {}) {
 
   const overlayComponent = slots.get('shell.overlay');
   const bridgeComponent = slots.get('conversation.input.left');
-  const launcherComponent = slots.get('conversation.session.header.utilities');
+  const launcherComponent = slots.get('sidebar.right.tab.document.actions');
   if (!overlayComponent) throw new Error('client.js did not register the shell.overlay slot');
   if (!bridgeComponent) throw new Error('client.js did not register the conversation.input.left slot');
 
@@ -591,6 +637,9 @@ export async function createHarness(options = {}) {
     window: windowStub,
     overlayInstance,
     launcherInstance,
+    hasSlot: (name) => slots.has(name),
+    browserToolbars,
+    conversationChrome,
     launcher: (instance = launcherInstance) => findAll(instance?.output, (node) => node.type === 'button')[0],
     mountLauncher,
     mountBridge,

@@ -17,11 +17,11 @@ async function annotate(h, note) {
 const own = (h, sessionId) => h.chips(sessionId).filter((chip) => chip.source === 'local-prototype-annotation');
 const annotationsOf = (chip) => JSON.parse(chip.ref).annotations;
 
-test('the native header button starts annotation without legacy sidebar toolbar anchors', async (t) => {
+test('the sidebar preview button starts annotation without legacy sidebar toolbar anchors', async (t) => {
   const h = await setup(t);
   h.mountBridge('session-a');
   const button = h.launcher();
-  assert.ok(button, 'a native header button must be rendered');
+  assert.ok(button, 'a sidebar preview button must be rendered');
   assert.equal(button.props.disabled, false);
   assert.equal(button.props['aria-label'], '批注');
   button.props.onClick();
@@ -35,7 +35,7 @@ test('the native header button starts annotation without legacy sidebar toolbar 
 test('the native button cancels picking and remains available for another attempt', async (t) => {
   let calls = 0;
   const h = await setup(t, { executePicker: () => { calls += 1; return new Promise(() => {}); } });
-  assert.ok(h.launcher(), 'a native header button must be rendered');
+  assert.ok(h.launcher(), 'a sidebar preview button must be rendered');
   h.launcher().props.onClick();
   await h.settle();
   assert.equal(h.launcher().props['aria-pressed'], true);
@@ -47,7 +47,7 @@ test('the native button cancels picking and remains available for another attemp
   assert.equal(calls, 2);
 });
 
-test('the native header button selects its own composer when several sessions are open', async (t) => {
+test('the sidebar preview button selects its own composer when several sessions are open', async (t) => {
   const h = await setup(t);
   h.mountBridge('session-a');
   h.mountBridge('session-b');
@@ -62,7 +62,7 @@ test('the native header button selects its own composer when several sessions ar
   assert.equal(annotationsOf(own(h, 'session-b')[0])[0].requirement, '发到第二个会话');
 });
 
-test('the native header button stays visible and reports when no prototype is open', async (t) => {
+test('the sidebar preview button stays visible and reports when no prototype is open', async (t) => {
   const h = await setup(t, { noPage: true });
   assert.ok(h.launcher(), 'the entry must exist before opening a prototype');
   h.launcher().props.onClick();
@@ -70,6 +70,36 @@ test('the native header button stays visible and reports when no prototype is op
   assert.match(h.overlayText(), /未在右侧栏检测到活动的原型页面/);
   assert.ok(h.launcher());
   assert.equal(h.textarea(), undefined);
+});
+
+test('annotation entries stay in preview toolbars and never use the conversation header', async (t) => {
+  const h = await setup(t, { browserToolbars: 2 });
+  assert.equal(h.hasSlot('conversation.session.header.utilities'), false);
+  assert.equal(h.hasSlot('sidebar.right.tab.document.actions'), true);
+  assert.equal(h.conversationChrome.querySelector('.dsh-pa-tab-btn'), null);
+  for (const bar of h.browserToolbars) {
+    const button = bar.querySelector('.dsh-pa-nav-btn');
+    assert.ok(button, 'each browser preview must have its own annotation button');
+    assert.equal(bar.children[bar.children.indexOf(button) + 1], bar.address.parentElement);
+  }
+});
+
+test('the browser toolbar button supports picking, restart and cleanup', async (t) => {
+  const h = await setup(t, { browserToolbars: 1 });
+  h.mountBridge('session-a');
+  const click = async () => {
+    const button = h.browserToolbars[0].querySelector('.dsh-pa-nav-btn');
+    assert.ok(button, 'the browser toolbar button must be mounted');
+    button.onclick({ preventDefault() {}, stopPropagation() {} });
+    await h.settle(10);
+  };
+  await click();
+  await h.typeNote('浏览器工具栏批注');
+  await h.clickFinish();
+  await click();
+  assert.ok(h.textarea());
+  h.dispose();
+  assert.equal(h.browserToolbars[0].querySelector('.dsh-pa-nav-btn'), null);
 });
 
 test('opens the editor and delivers context even if screenshot capture never completes', async (t) => {

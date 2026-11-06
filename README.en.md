@@ -13,7 +13,7 @@ Open a Vite, React, or Vue development page in the Desktop sidebar browser. Pick
 ## Features
 
 - Hover highlights with element dimensions, color, and font details.
-- An annotation button in the native session header, with additional sidebar toolbar entries and the `Option+A` shortcut (`Alt+A` on Windows/Linux keyboards, unverified).
+- An annotation button beside the sidebar browser address field and in the document preview toolbar, plus the `Option+A` shortcut (`Alt+A` on Windows/Linux keyboards, unverified).
 - Multiple annotations in one compact chip, with a detail view and deletion before sending. Sent annotations are read-only.
 - Selector, tag, short text, bounds, styles, page URL, and viewport sent with your request.
 - Adds annotations to the draft; you choose when to send. The plugin does not edit source files itself.
@@ -30,7 +30,7 @@ Some labels and messages currently remain in Chinese. Plugin metadata and primar
 | HTML preview iframes with accessible DOM | Supported; origin and sandbox restrictions apply |
 | Windows / Linux Desktop | Not verified |
 | Standalone Web, TUI, Headless | Outside this release's support target |
-| DSH Desktop `0.2.1-rc.5` on macOS | Native header slot inspected; entry and picking regression tests pass; real UI not verified |
+| DSH Desktop `0.2.1-rc.5` on macOS | Sidebar document toolbar slot and browser markup inspected; entry and picking regression tests pass; real UI not verified |
 | Other DSH versions | Not verified; the declared range `>=0.2.1-rc.3 <0.3.0` does not establish tested compatibility across that range |
 
 The default Desktop sidebar-right and sidebar-browser host plugins must be available. This version depends on the host's current reference, transcript, and toolbar APIs. Recheck after a DSH upgrade. Do not install multiple copies.
@@ -62,7 +62,7 @@ For migration from the local trial, remove the old local link in the plugin mana
 ## Use
 
 1. Open a local frontend such as `http://localhost:5173` in the DSH sidebar Browser, or an HTML preview with accessible DOM.
-2. Click **批注** in the session header. Additional entries can appear in sidebar toolbars; the shortcut is `Option+A`.
+2. Click **批注** beside the sidebar browser address field or in the document preview toolbar; the shortcut is `Option+A`.
 3. Hover and click an element. Press `Esc` to cancel picking.
 4. Write the requested change. Click **完成** or press `Enter`; `Shift+Enter` inserts a newline. IME composition confirmation does not submit.
 5. The success notice closes automatically after 3 seconds. Click the composer chip to review or delete individual annotations. More annotations increase the count on the same chip.
@@ -70,7 +70,7 @@ For migration from the local trial, remove the old local link in the plugin mana
 
 The note editor opens after selection and stays within the window, anchored only to a visible toolbar button. Outside clicks keep unsent notes open; use Cancel or Escape to close. Preview capture runs in the background; a failed or stalled capture does not prevent writing or submitting a note. Navigation, timeout, an unrecognized element, or a missing selection result shows a notice.
 
-The session-header entry selects its own composer by default. With other entries, select the destination in the panel when multiple composers are mounted. A submitting composer cannot receive annotations. Failed insertion keeps the annotation and reports the reason.
+The document-preview entry selects its own session's composer by default. With the browser toolbar or shortcut, select the destination in the panel when multiple composers are mounted. A submitting composer cannot receive annotations. Failed insertion keeps the annotation and reports the reason.
 
 To update, repeat the GitHub install command and restart Desktop. Disable or uninstall through DSH's plugin manager, or run:
 

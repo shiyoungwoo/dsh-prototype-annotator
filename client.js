@@ -544,7 +544,7 @@ window.__ModuleLoader__.load({
         ctx.effect(() => ctx.locale.register('local-prototype-annotation', 'en', dict.en));
         const t = ctx.locale.bind('local-prototype-annotation');
 
-        // This entry belongs to the native header, independent of sidebar DOM selectors.
+        // Native document-preview toolbar entry; browser previews use their address toolbar.
         function AnnotationLauncher({ sessionId }) {
           React.useSyncExternalStore((fn) => { listeners.add(fn); return () => listeners.delete(fn); }, () => version);
           React.useSyncExternalStore(ctx.locale.subscribe.bind(ctx.locale), ctx.locale.getSnapshot.bind(ctx.locale));
@@ -786,23 +786,6 @@ window.__ModuleLoader__.load({
                 return btn;
               };
 
-              // Target 1: Right sidebar panel chrome controls (directly left of [⛶] fullscreen button)
-              try {
-                const targetBtn = document.querySelector('button[data-sidebar-right-mode]')
-                  || document.querySelector('button[data-sidebar-right-toggle]')
-                  || document.querySelector('button[data-sidebar-right-expand]');
-                if (targetBtn && targetBtn.parentElement) {
-                  let btn = targetBtn.parentElement.querySelector('.dsh-pa-tab-btn');
-                  if (!btn) {
-                    btn = createBtn('dsh-pa-tab-btn');
-                    targetBtn.parentElement.insertBefore(btn, targetBtn);
-                  }
-                  btn.classList.toggle('dsh-pa-active', isPicking);
-                  const span = btn.querySelector('span');
-                  if (span) span.textContent = isPicking ? '取消点选' : '批注';
-                }
-              } catch {}
-
               // Target 2: Sandbox warning status bar (above HTML preview)
               try {
                 const sandboxBar = document.querySelector('[class*="sandboxStatus"]');
@@ -845,10 +828,9 @@ window.__ModuleLoader__.load({
 
               // Target 4: Browser body form (Browser tab toolbar, right next to reload button)
               try {
-                const browserToolbar = document.querySelector('input[class*="address"]')?.closest('form')
-                  || document.querySelector('webview')?.closest('[class*="root"]')?.querySelector('form')
-                  || document.querySelector('[data-sidebar-browser-frame="webview"]')?.closest('[class*="root"]')?.querySelector('form');
-                if (browserToolbar) {
+                const browserToolbars = new Set(Array.from(document.querySelectorAll('input[class*="address"]'))
+                  .map((input) => input.closest('form')).filter(Boolean));
+                for (const browserToolbar of browserToolbars) {
                   let btn = browserToolbar.querySelector('.dsh-pa-nav-btn');
                   if (!btn) {
                     btn = createBtn('dsh-pa-nav-btn');
@@ -1098,7 +1080,7 @@ window.__ModuleLoader__.load({
 
         ctx.slots.inject('conversation.user.text.node', () => ctx.slots.register({ name: 'conversation.user.text.node', key: TRANSCRIPT_RULE, priority: 100 }, SentAnnotations));
         ctx.slots.inject('shell.overlay', () => ctx.slots.register({ name: 'shell.overlay', id: 'local-prototype-annotation' }, AnnotationOverlay));
-        ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({ name: 'conversation.session.header.utilities', id: 'local-prototype-annotation-launcher', order: 15 }, AnnotationLauncher));
+        ctx.slots.inject('sidebar.right.tab.document.actions', () => ctx.slots.register({ name: 'sidebar.right.tab.document.actions', id: 'local-prototype-annotation-launcher', order: 15 }, AnnotationLauncher));
         ctx.slots.inject('conversation.input.left', () => ctx.slots.register({ name: 'conversation.input.left', id: 'local-prototype-annotation-bridge' }, InputBridge));
       },
     };
