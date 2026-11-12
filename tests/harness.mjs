@@ -329,6 +329,8 @@ export async function createHarness(options = {}) {
   const chromeToggle = { parentElement: conversationChrome };
   const injectedButtons = () => [...browserToolbars, conversationChrome].flatMap((bar) => bar.children).filter((child) => child.className?.includes('dsh-pa-tool-btn'));
   const documentStub = {
+    // The theme probe reads resolved custom properties from the document body.
+    body: {},
     querySelector: (selector) => {
       if (selector.startsWith('.dsh-pa-tool-btn')) return toolButtons[0] ?? injectedButtons()[0] ?? null;
       if (selector === 'input[class*="address"]') return browserToolbars[0]?.address ?? null;
@@ -344,7 +346,8 @@ export async function createHarness(options = {}) {
     createElement: () => {
       const span = { textContent: '批注' };
       const node = {
-        style: {}, className: '',
+        // A real element exposes CSSStyleDeclaration; the injected buttons set custom properties.
+        style: { setProperty(name, value) { this[name] = value; } }, className: '',
         classList: {
           toggle(cls, active) {
             const classes = new Set(node.className.split(' '));
@@ -400,6 +403,9 @@ export async function createHarness(options = {}) {
     },
     clearInterval,
     queueMicrotask,
+    // Resolved theme custom properties the injected buttons read.
+    getComputedStyle: () => ({ getPropertyValue: (name) => (options.themeColors ?? {})[name] ?? '' }),
+    matchMedia: () => ({ matches: options.prefersDark === true }),
     File,
     Blob,
     Event,

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.5 — 2026-11-12
+
+- Give every injected toolbar button its own theme colors read from the document, so a dark theme no longer shows a white pill with an unreadable label.
+- Refresh those colors on each synchronisation pass, so a theme switch updates buttons already in the toolbar.
+
 ## 0.0.4 — 2026-11-06
 
 - Move the annotation entry from the conversation header to the sidebar document-preview toolbar.

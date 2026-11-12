@@ -369,3 +369,33 @@ test('clicking the chip opens details, and deleting entries shrinks then removes
   assert.ok(h.sessions.get('session-a').state.draft.startsWith('前文'));
   assert.equal(h.findButtons('删除').length, 0);
 });
+
+test('the injected toolbar button follows the resolved theme', async (t) => {
+  const dark = await setup(t, {
+    browserToolbars: 1,
+    themeColors: {
+      '--dsw-alias-bg-base': 'rgb(16, 18, 22)',
+      '--dsw-alias-bg-layer-1': 'rgb(32, 36, 44)',
+      '--dsw-alias-brand-primary': 'rgb(138, 180, 248)',
+      '--dsw-alias-border-l2': 'rgba(255,255,255,0.2)',
+    },
+  });
+  dark.mountBridge('session-a');
+  const darkButton = dark.browserToolbars[0].querySelector('.dsh-pa-nav-btn');
+  assert.equal(darkButton.style['--dsh-pa-btn-bg'], 'rgb(32, 36, 44)');
+  assert.equal(darkButton.style['--dsh-pa-btn-fg'], 'rgb(138, 180, 248)');
+  assert.equal(darkButton.style['--dsh-pa-btn-active-fg'], '#0b1220');
+
+  const light = await setup(t, {
+    browserToolbars: 1,
+    themeColors: {
+      '--dsw-alias-bg-base': 'rgb(255, 255, 255)',
+      '--dsw-alias-bg-layer-1': 'rgb(250, 250, 250)',
+      '--dsw-alias-brand-primary': 'rgb(47, 111, 235)',
+    },
+  });
+  light.mountBridge('session-a');
+  const lightButton = light.browserToolbars[0].querySelector('.dsh-pa-nav-btn');
+  assert.equal(lightButton.style['--dsh-pa-btn-bg'], 'rgb(250, 250, 250)');
+  assert.equal(lightButton.style['--dsh-pa-btn-active-fg'], '#ffffff');
+});

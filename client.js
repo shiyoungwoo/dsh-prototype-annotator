@@ -349,9 +349,9 @@ window.__ModuleLoader__.load({
         align-items: center !important;
         justify-content: center !important;
         cursor: pointer !important;
-        border: 1px solid var(--dsw-alias-border-l2, rgba(0,0,0,0.12)) !important;
-        background: var(--dsw-alias-bg-layer-1, rgba(255,255,255,0.9)) !important;
-        color: var(--dsw-alias-brand-primary, #2f6feb) !important;
+        border: 1px solid var(--dsh-pa-btn-border, var(--dsw-alias-border-l2, rgba(0,0,0,0.12))) !important;
+        background: var(--dsh-pa-btn-bg, var(--dsw-alias-bg-layer-1, rgba(255,255,255,0.9))) !important;
+        color: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, #2f6feb)) !important;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
         transition: all 0.15s ease !important;
         white-space: nowrap !important;
@@ -362,13 +362,13 @@ window.__ModuleLoader__.load({
         gap: 4px !important;
       }
       .dsh-pa-tool-btn:hover {
-        background: var(--dsw-alias-interactive-bg-hover, rgba(0,0,0,0.06)) !important;
-        border-color: var(--dsw-alias-brand-primary, #2f6feb) !important;
+        background: var(--dsh-pa-btn-hover, var(--dsw-alias-bg-layer-2, rgba(0,0,0,0.06))) !important;
+        border-color: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, #2f6feb)) !important;
       }
       .dsh-pa-tool-btn.dsh-pa-active {
-        background: var(--dsw-alias-brand-primary, #2f6feb) !important;
-        color: #fff !important;
-        border-color: var(--dsw-alias-brand-primary, #2f6feb) !important;
+        background: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, #2f6feb)) !important;
+        color: var(--dsh-pa-btn-active-fg, #fff) !important;
+        border-color: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, #2f6feb)) !important;
       }
       .dsh-pa-sandbox-btn {
         height: 22px !important;
@@ -491,6 +491,68 @@ window.__ModuleLoader__.load({
         color: var(--dsw-alias-label-primary, #111);
       }
     `;
+
+    /**
+     * Resolve the colors one injected toolbar button needs.
+     *
+     * These buttons are appended into host toolbars, so they only inherit the
+     * theme custom properties that the surrounding toolbar declares. When those
+     * properties do not reach the button, the light fallbacks applied and a dark
+     * theme showed a white pill with an unreadable label. Reading the resolved
+     * values once from the document body keeps a single stylesheet correct in
+     * both themes.
+     *
+     * @returns {{ background: string, foreground: string, border: string, hover: string, activeForeground: string }}
+     *   CSS colors to set as custom properties on an injected button.
+     */
+    function injectedButtonTheme() {
+      const light = {
+        background: 'rgba(255,255,255,0.9)',
+        foreground: '#2f6feb',
+        border: 'rgba(0,0,0,0.12)',
+        hover: 'rgba(0,0,0,0.06)',
+        activeForeground: '#ffffff',
+      };
+      let probe;
+      try {
+        if (typeof getComputedStyle !== 'function' || !document.body) return light;
+        probe = getComputedStyle(document.body);
+      } catch {
+        return light;
+      }
+      const read = (name, fallback) => probe.getPropertyValue(name).trim() || fallback;
+      const surface = read('--dsw-alias-bg-base', '');
+      const match = /rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)/.exec(surface);
+      const media = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)').matches : false;
+      const dark = match === null
+        ? media
+        : (0.2126 * Number(match[1]) + 0.7152 * Number(match[2]) + 0.0722 * Number(match[3])) < 128;
+      return {
+        background: read('--dsw-alias-bg-layer-1', dark ? 'rgba(255,255,255,0.09)' : light.background),
+        foreground: read('--dsw-alias-brand-primary', dark ? '#8ab4f8' : light.foreground),
+        border: read('--dsw-alias-border-l2', dark ? 'rgba(255,255,255,0.2)' : light.border),
+        hover: read('--dsw-alias-bg-layer-2', dark ? 'rgba(255,255,255,0.16)' : light.hover),
+        activeForeground: dark ? '#0b1220' : light.activeForeground,
+      };
+    }
+
+    /**
+     * Give one injected button its own theme values.
+     *
+     * The custom properties live on the button itself, so a toolbar that does
+     * not forward the theme properties cannot leave it with light fallbacks.
+     *
+     * @param {HTMLButtonElement} button - Button appended into a host toolbar.
+     * @returns {void}
+     */
+    function styleInjectedButton(button) {
+      const theme = injectedButtonTheme();
+      button.style.setProperty('--dsh-pa-btn-bg', theme.background);
+      button.style.setProperty('--dsh-pa-btn-fg', theme.foreground);
+      button.style.setProperty('--dsh-pa-btn-border', theme.border);
+      button.style.setProperty('--dsh-pa-btn-hover', theme.hover);
+      button.style.setProperty('--dsh-pa-btn-active-fg', theme.activeForeground);
+    }
 
     return {
       inject: ['slots', 'locale', 'sessions', 'inputTriggers', 'uiConversation'],
@@ -783,6 +845,7 @@ window.__ModuleLoader__.load({
                 btn.title = '批注原型元素 (快捷键 Option+A) · 点击进入点选模式';
                 btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex:none"><path d="M8 3H3v5M16 3h5v5M3 16v5h5m13-5v5h-5M9 8l9 7-5 1-2 5z"/></svg><span>批注</span>';
                 btn.onclick = onButtonClick;
+                styleInjectedButton(btn);
                 return btn;
               };
 
@@ -798,8 +861,10 @@ window.__ModuleLoader__.load({
                     btn.title = '批注当前 HTML 原型元素 (快捷键 Option+A)';
                     btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex:none"><path d="M8 3H3v5M16 3h5v5M3 16v5h5m13-5v5h-5M9 8l9 7-5 1-2 5z"/></svg><span>批注原型</span>';
                     btn.onclick = onButtonClick;
+                    styleInjectedButton(btn);
                     sandboxBar.appendChild(btn);
                   }
+                  styleInjectedButton(btn);
                   btn.classList.toggle('dsh-pa-active', isPicking);
                   const span = btn.querySelector('span');
                   if (span) span.textContent = isPicking ? '取消点选' : '批注原型';
@@ -820,6 +885,7 @@ window.__ModuleLoader__.load({
                       editorHeader.appendChild(btn);
                     }
                   }
+                  styleInjectedButton(btn);
                   btn.classList.toggle('dsh-pa-active', isPicking);
                   const span = btn.querySelector('span');
                   if (span) span.textContent = isPicking ? '取消点选' : '批注';
@@ -842,6 +908,7 @@ window.__ModuleLoader__.load({
                       browserToolbar.appendChild(btn);
                     }
                   }
+                  styleInjectedButton(btn);
                   btn.classList.toggle('dsh-pa-active', isPicking);
                   const span = btn.querySelector('span');
                   if (span) span.textContent = isPicking ? '取消点选' : '批注';
