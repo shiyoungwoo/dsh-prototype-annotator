@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.6 — 2026-11-16
+
+- Keep on-brand labels readable in the dark palette: the dark theme's brand color is near-white, so the primary, sandbox, active tool, and picking-banner labels now take the surface color instead of the static white `--dsw-alias-label-on-color` (contrast 1.05:1 before, 17.45:1 after).
+- Give every remaining plugin surface a dark-aware fallback (`light-dark()`), and drop the local `color-scheme` overrides so the host's resolved scheme decides.
+- Read the resolved scheme from the host (`data-ds-dark-theme` / root `color-scheme`) before falling back to the operating-system preference.
+
 ## 0.0.5 — 2026-11-12
 
 - Give every injected toolbar button its own theme colors read from the document, so a dark theme no longer shows a white pill with an unreadable label.

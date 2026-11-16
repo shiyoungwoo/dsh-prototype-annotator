@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-proto-annotate-spike",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "description": "Codex-style element annotations for DeepSeek Harness Desktop. Click a prototype element, describe the change, and send compact annotation chips with DOM context to your agent.",
   "license": "MIT",
@@ -10,9 +10,22 @@
     "url": "git+https://github.com/shiyoungwoo/dsh-prototype-annotator.git"
   },
   "homepage": "https://github.com/shiyoungwoo/dsh-prototype-annotator#readme",
-  "bugs": { "url": "https://github.com/shiyoungwoo/dsh-prototype-annotator/issues" },
-  "keywords": ["dsh", "dsh-plugin", "deepseek-harness", "annotation", "prototype", "element-picker", "desktop"],
-  "engines": { "node": ">=22.19.0", "dsh": ">=0.2.1-rc.3 <0.3.0" },
+  "bugs": {
+    "url": "https://github.com/shiyoungwoo/dsh-prototype-annotator/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "annotation",
+    "prototype",
+    "element-picker",
+    "desktop"
+  ],
+  "engines": {
+    "node": ">=22.19.0",
+    "dsh": ">=0.2.1-rc.3 <0.3.0"
+  },
   "scripts": {
     "check": "node --check index.js && node --check client.js",
     "test": "node --test tests/delivery.test.mjs tests/picker.test.mjs",
@@ -24,13 +37,27 @@
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg"
   },
-  "files": ["index.js", "client.js", "cordis.patch.yml", "locale/*.json", "icon.svg", "README.en.md", "CHANGELOG.md", "dsh-plugin.naming.json"],
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.en.md",
+    "CHANGELOG.md",
+    "dsh-plugin.naming.json"
+  ],
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
       "immediately": true,
-      "inject": ["@deepseek-ai/dsh-client-ui-sidebar-right", "@deepseek-ai/dsh-client-ui-sidebar-browser"]
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar-right",
+        "@deepseek-ai/dsh-client-ui-sidebar-browser"
+      ]
     }
   }
 }
