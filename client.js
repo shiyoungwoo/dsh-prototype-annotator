@@ -352,7 +352,6 @@ window.__ModuleLoader__.load({
         border: 1px solid var(--dsh-pa-btn-border, var(--dsw-alias-border-l2, light-dark(rgba(0,0,0,0.12), rgba(255,255,255,0.2)))) !important;
         background: var(--dsh-pa-btn-bg, var(--dsw-alias-bg-layer-1, light-dark(rgba(255,255,255,0.9), rgba(255,255,255,0.09)))) !important;
         color: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8))) !important;
-        color-scheme: light dark;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
         transition: all 0.15s ease !important;
         white-space: nowrap !important;
@@ -368,7 +367,7 @@ window.__ModuleLoader__.load({
       }
       .dsh-pa-tool-btn.dsh-pa-active {
         background: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8))) !important;
-        color: var(--dsh-pa-btn-active-fg, var(--dsw-alias-label-on-color, light-dark(#fff, #0b1220))) !important;
+        color: var(--dsh-pa-btn-active-fg, var(--dsw-alias-bg-base, light-dark(#ffffff, #101216))) !important;
         border-color: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8))) !important;
       }
       .dsh-pa-sandbox-btn {
@@ -382,7 +381,7 @@ window.__ModuleLoader__.load({
         cursor: pointer !important;
         border: 0 !important;
         background: var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8)) !important;
-        color: var(--dsw-alias-label-on-color, light-dark(#fff, #0b1220)) !important;
+        color: var(--dsw-alias-bg-base, light-dark(#ffffff, #101216)) !important;
         margin-left: auto !important;
         gap: 4px !important;
       }
@@ -396,8 +395,7 @@ window.__ModuleLoader__.load({
         transform: translateX(-50%);
         z-index: 2147483646;
         background: var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8));
-        color: var(--dsw-alias-label-on-color, light-dark(#fff, #0b1220));
-        color-scheme: light dark;
+        color: var(--dsw-alias-bg-base, light-dark(#ffffff, #101216));
         padding: 8px 16px;
         border-radius: 20px;
         font: 13px/1.4 system-ui, sans-serif;
@@ -464,8 +462,7 @@ window.__ModuleLoader__.load({
         cursor: pointer;
         border: 0;
         background: var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8));
-        color: var(--dsw-alias-label-on-color, light-dark(#fff, #0b1220));
-        color-scheme: light dark;
+        color: var(--dsw-alias-bg-base, light-dark(#ffffff, #101216));
       }
       .dsh-pa-primary-btn:hover {
         filter: brightness(1.08);
@@ -527,9 +524,17 @@ window.__ModuleLoader__.load({
       const surface = read('--dsw-alias-bg-base', '');
       const match = /rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)/.exec(surface);
       const media = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)').matches : false;
-      const dark = match === null
-        ? media
-        : (0.2126 * Number(match[1]) + 0.7152 * Number(match[2]) + 0.0722 * Number(match[3])) < 128;
+      // The host resolves `system` itself: it sets the root `color-scheme` and
+      // marks a dark palette with `data-ds-dark-theme` on the body, so those
+      // win over the operating-system preference.
+      const declared = (document.documentElement?.style?.colorScheme || '').trim();
+      const dark = document.body?.hasAttribute?.('data-ds-dark-theme') === true || declared === 'dark'
+        ? true
+        : declared === 'light'
+          ? false
+          : match === null
+            ? media
+            : (0.2126 * Number(match[1]) + 0.7152 * Number(match[2]) + 0.0722 * Number(match[3])) < 128;
       return {
         background: read('--dsw-alias-bg-layer-1', dark ? 'rgba(255,255,255,0.09)' : light.background),
         foreground: read('--dsw-alias-brand-primary', dark ? '#8ab4f8' : light.foreground),
@@ -1016,7 +1021,7 @@ window.__ModuleLoader__.load({
               h('button', {
                 type: 'button',
                 className: 'dsh-pa-secondary-btn',
-                style: { padding: '2px 8px', fontSize: '11px', background: 'rgba(255,255,255,0.2)', color: 'var(--dsw-alias-label-on-color, light-dark(#fff, #0b1220))', border: 0 },
+                style: { padding: '2px 8px', fontSize: '11px', background: 'color-mix(in srgb, currentColor 16%, transparent)', color: 'inherit', border: 0 },
                 onClick: cancelPick,
               }, t('cancel'))
             ) : null,
