@@ -224,7 +224,7 @@ window.__ModuleLoader__.load({
         const box = document.createElement('div');
         const tip = document.createElement('div');
         box.style.cssText = 'position:fixed;box-sizing:border-box;border:2px solid #2f6feb;background:#2f6feb20;display:none;pointer-events:none';
-        tip.style.cssText = 'position:fixed;background:#fff;color:#111;font:12px/1.5 monospace;padding:6px 8px;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,0.25);white-space:pre;max-width:calc(100vw - 16px);overflow:hidden;display:none;pointer-events:none;z-index:2147483647';
+        tip.style.cssText = 'position:fixed;background:light-dark(#fff,#1b1f24);color:light-dark(#111,#e8eaed);color-scheme:light dark;font:12px/1.5 monospace;padding:6px 8px;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,0.25);white-space:pre;max-width:calc(100vw - 16px);overflow:hidden;display:none;pointer-events:none;z-index:2147483647';
         shadow.append(box, tip);
         (document.body || document.documentElement).append(host);
         let done = false;
@@ -349,9 +349,10 @@ window.__ModuleLoader__.load({
         align-items: center !important;
         justify-content: center !important;
         cursor: pointer !important;
-        border: 1px solid var(--dsh-pa-btn-border, var(--dsw-alias-border-l2, rgba(0,0,0,0.12))) !important;
-        background: var(--dsh-pa-btn-bg, var(--dsw-alias-bg-layer-1, rgba(255,255,255,0.9))) !important;
-        color: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, #2f6feb)) !important;
+        border: 1px solid var(--dsh-pa-btn-border, var(--dsw-alias-border-l2, light-dark(rgba(0,0,0,0.12), rgba(255,255,255,0.2)))) !important;
+        background: var(--dsh-pa-btn-bg, var(--dsw-alias-bg-layer-1, light-dark(rgba(255,255,255,0.9), rgba(255,255,255,0.09)))) !important;
+        color: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8))) !important;
+        color-scheme: light dark;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
         transition: all 0.15s ease !important;
         white-space: nowrap !important;
@@ -362,13 +363,13 @@ window.__ModuleLoader__.load({
         gap: 4px !important;
       }
       .dsh-pa-tool-btn:hover {
-        background: var(--dsh-pa-btn-hover, var(--dsw-alias-bg-layer-2, rgba(0,0,0,0.06))) !important;
-        border-color: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, #2f6feb)) !important;
+        background: var(--dsh-pa-btn-hover, var(--dsw-alias-bg-layer-2, light-dark(rgba(0,0,0,0.06), rgba(255,255,255,0.16)))) !important;
+        border-color: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8))) !important;
       }
       .dsh-pa-tool-btn.dsh-pa-active {
-        background: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, #2f6feb)) !important;
-        color: var(--dsh-pa-btn-active-fg, #fff) !important;
-        border-color: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, #2f6feb)) !important;
+        background: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8))) !important;
+        color: var(--dsh-pa-btn-active-fg, var(--dsw-alias-label-on-color, light-dark(#fff, #0b1220))) !important;
+        border-color: var(--dsh-pa-btn-fg, var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8))) !important;
       }
       .dsh-pa-sandbox-btn {
         height: 22px !important;
@@ -380,8 +381,8 @@ window.__ModuleLoader__.load({
         align-items: center !important;
         cursor: pointer !important;
         border: 0 !important;
-        background: #2f6feb !important;
-        color: #fff !important;
+        background: var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8)) !important;
+        color: var(--dsw-alias-label-on-color, light-dark(#fff, #0b1220)) !important;
         margin-left: auto !important;
         gap: 4px !important;
       }
@@ -394,8 +395,9 @@ window.__ModuleLoader__.load({
         left: 50%;
         transform: translateX(-50%);
         z-index: 2147483646;
-        background: #2f6feb;
-        color: #fff;
+        background: var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8));
+        color: var(--dsw-alias-label-on-color, light-dark(#fff, #0b1220));
+        color-scheme: light dark;
         padding: 8px 16px;
         border-radius: 20px;
         font: 13px/1.4 system-ui, sans-serif;
@@ -413,15 +415,15 @@ window.__ModuleLoader__.load({
         box-sizing: border-box;
         pointer-events: auto;
         padding: 12px 14px;
-        background: var(--dsw-alias-bg-base, #fff);
-        border: 1px solid var(--dsw-alias-border-l2, #e5e5e5);
+        background: var(--dsw-alias-bg-base, light-dark(#fff, #1b1f24));
+        border: 1px solid var(--dsw-alias-border-l2, light-dark(#e5e5e5, rgba(255,255,255,0.16)));
         border-radius: 12px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
         display: flex;
         flex-direction: column;
         gap: 10px;
         font: 12px/1.5 system-ui, sans-serif;
-        color: var(--dsw-alias-label-primary, #111);
+        color: var(--dsw-alias-label-primary, light-dark(#111, #e8eaed));
         max-height: calc(100vh - 120px);
         overflow-y: auto;
       }
@@ -432,15 +434,15 @@ window.__ModuleLoader__.load({
         padding: 8px 10px;
         font: 13px/1.4 system-ui, sans-serif;
         color: inherit;
-        border: 1px solid var(--dsw-alias-border-l2, #ddd);
+        border: 1px solid var(--dsw-alias-border-l2, light-dark(#ddd, rgba(255,255,255,0.14)));
         border-radius: 8px;
         background: var(--dsw-alias-bg-layer-1, #fafafa);
         resize: vertical;
         outline: none;
       }
       .dsh-pa-popover textarea:focus {
-        border-color: var(--dsw-alias-brand-primary, #2f6feb);
-        box-shadow: 0 0 0 2px var(--dsw-alias-interactive-bg-active, #2f6feb30);
+        border-color: var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8));
+        box-shadow: 0 0 0 2px var(--dsw-alias-interactive-bg-active, light-dark(#2f6feb30, rgba(138,180,248,0.22)));
       }
       .dsh-pa-tag {
         display: inline-flex;
@@ -451,8 +453,8 @@ window.__ModuleLoader__.load({
         font-family: monospace;
         font-weight: 600;
         border-radius: 4px;
-        background: var(--dsw-alias-interactive-bg-active, #2f6feb15);
-        color: var(--dsw-alias-brand-primary, #2f6feb);
+        background: var(--dsw-alias-interactive-bg-active, light-dark(#2f6feb15, rgba(138,180,248,0.16)));
+        color: var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8));
       }
       .dsh-pa-primary-btn {
         padding: 6px 14px;
@@ -461,8 +463,9 @@ window.__ModuleLoader__.load({
         border-radius: 6px;
         cursor: pointer;
         border: 0;
-        background: var(--dsw-alias-brand-primary, #2f6feb);
-        color: #fff;
+        background: var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8));
+        color: var(--dsw-alias-label-on-color, light-dark(#fff, #0b1220));
+        color-scheme: light dark;
       }
       .dsh-pa-primary-btn:hover {
         filter: brightness(1.08);
@@ -473,8 +476,8 @@ window.__ModuleLoader__.load({
         gap: 2px;
         padding: 0 6px;
         border-radius: 6px;
-        background: var(--dsw-alias-bg-layer-2, rgba(37, 99, 235, 0.1));
-        color: var(--dsw-alias-label-primary, #1d4ed8);
+        background: var(--dsw-alias-bg-layer-2, light-dark(rgba(37, 99, 235, 0.1), rgba(138, 180, 248, 0.14)));
+        color: var(--dsw-alias-label-primary, light-dark(#1d4ed8, #a8c0f0));
         cursor: pointer;
       }
       .dsh-pa-secondary-btn {
@@ -482,13 +485,13 @@ window.__ModuleLoader__.load({
         font-size: 12px;
         border-radius: 6px;
         cursor: pointer;
-        border: 1px solid var(--dsw-alias-border-l2, #ddd);
-        background: var(--dsw-alias-bg-layer-1, #f5f5f5);
-        color: var(--dsw-alias-label-secondary, #666);
+        border: 1px solid var(--dsw-alias-border-l2, light-dark(#ddd, rgba(255,255,255,0.14)));
+        background: var(--dsw-alias-bg-layer-1, light-dark(#f5f5f5, rgba(255,255,255,0.08)));
+        color: var(--dsw-alias-label-secondary, light-dark(#666, #a0a4ad));
       }
       .dsh-pa-secondary-btn:hover {
-        background: var(--dsw-alias-interactive-bg-hover, #eee);
-        color: var(--dsw-alias-label-primary, #111);
+        background: var(--dsw-alias-interactive-bg-hover, light-dark(#eee, rgba(255,255,255,0.14)));
+        color: var(--dsw-alias-label-primary, light-dark(#111, #e8eaed));
       }
     `;
 
@@ -621,9 +624,9 @@ window.__ModuleLoader__.load({
             style: {
               display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0,
               height: '26px', padding: '0 8px', borderRadius: '6px',
-              border: '1px solid var(--dsw-alias-border-l2, #ddd)',
-              background: 'var(--dsw-alias-bg-layer-1, #fff)',
-              color: 'var(--dsw-alias-brand-primary, #2f6feb)',
+              border: '1px solid var(--dsw-alias-border-l2, light-dark(#ddd, rgba(255,255,255,0.14)))',
+              background: 'var(--dsw-alias-bg-layer-1, light-dark(#fff, rgba(255,255,255,0.09)))',
+              color: 'var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8))',
               font: '500 12px system-ui, sans-serif', cursor: 'pointer', pointerEvents: 'auto',
             },
           }, h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, 'aria-hidden': true },
@@ -1013,7 +1016,7 @@ window.__ModuleLoader__.load({
               h('button', {
                 type: 'button',
                 className: 'dsh-pa-secondary-btn',
-                style: { padding: '2px 8px', fontSize: '11px', background: 'rgba(255,255,255,0.2)', color: '#fff', border: 0 },
+                style: { padding: '2px 8px', fontSize: '11px', background: 'rgba(255,255,255,0.2)', color: 'var(--dsw-alias-label-on-color, light-dark(#fff, #0b1220))', border: 0 },
                 onClick: cancelPick,
               }, t('cancel'))
             ) : null,
@@ -1024,8 +1027,8 @@ window.__ModuleLoader__.load({
                 top: '48px',
                 right: '24px',
                 zIndex: 10030,
-                background: 'var(--dsw-alias-bg-base, #fff)',
-                border: '1px solid var(--dsw-alias-border-l2, #ddd)',
+                background: 'var(--dsw-alias-bg-base, light-dark(#fff, #1b1f24))',
+                border: '1px solid var(--dsw-alias-border-l2, light-dark(#ddd, rgba(255,255,255,0.14)))',
                 borderRadius: '8px',
                 padding: '8px 12px',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
@@ -1033,7 +1036,9 @@ window.__ModuleLoader__.load({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                color: status.includes('未') || status.includes('沙箱') || status.includes('错误') ? '#d32f2f' : '#2f6feb',
+                color: status.includes('未') || status.includes('沙箱') || status.includes('错误')
+                  ? 'var(--dsw-alias-state-error-primary, light-dark(#d32f2f, #ff6b6b))'
+                  : 'var(--dsw-alias-brand-primary, light-dark(#2f6feb, #8ab4f8))',
               },
             },
               h('span', null, status),
@@ -1061,8 +1066,8 @@ window.__ModuleLoader__.load({
               result.element.text ? h('div', {
                 style: {
                   fontSize: '11px',
-                  color: 'var(--dsw-alias-label-secondary, #666)',
-                  background: 'var(--dsw-alias-bg-layer-1, #f5f5f5)',
+                  color: 'var(--dsw-alias-label-secondary, light-dark(#666, #a0a4ad))',
+                  background: 'var(--dsw-alias-bg-layer-1, light-dark(#f5f5f5, rgba(255,255,255,0.08)))',
                   padding: '4px 8px',
                   borderRadius: '6px',
                   overflow: 'hidden',
@@ -1073,7 +1078,7 @@ window.__ModuleLoader__.load({
               result.image ? h('img', {
                 src: result.image,
                 alt: result.element.selector,
-                style: { maxHeight: '100px', objectFit: 'contain', borderRadius: '6px', border: '1px solid var(--dsw-alias-border-l2, #eee)' },
+                style: { maxHeight: '100px', objectFit: 'contain', borderRadius: '6px', border: '1px solid var(--dsw-alias-border-l2, light-dark(#eee, rgba(255,255,255,0.12)))' },
               }) : null,
               h('textarea', {
                 ref: textareaRef,
@@ -1095,7 +1100,7 @@ window.__ModuleLoader__.load({
                   value: chosen,
                   disabled: isFinishing,
                   onChange: (e) => setChosen(e.target.value),
-                  style: { flex: 1, padding: '2px 4px', fontSize: '11px', borderRadius: '4px', border: '1px solid var(--dsw-alias-border-l2, #ddd)' },
+                  style: { flex: 1, padding: '2px 4px', fontSize: '11px', borderRadius: '4px', border: '1px solid var(--dsw-alias-border-l2, light-dark(#ddd, rgba(255,255,255,0.14)))' },
                 }, h('option', { value: '' }, '请选择目标会话'), entries.map((e) => h('option', { key: e.sessionId, value: e.sessionId }, e.sessionId)))) : null,
               h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '4px' } },
                 h('button', {
@@ -1110,7 +1115,7 @@ window.__ModuleLoader__.load({
                   onClick: handleFinish,
                   disabled: isFinishing || !selected,
                 }, isFinishing ? '正在加入输入框…' : t('finish') + ' (Enter)')),
-              status ? h('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary, #666)' } }, status) : null) : null,
+              status ? h('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary, light-dark(#666, #a0a4ad))' } }, status) : null) : null,
             details ? h('div', {
               className: 'dsh-pa-popover',
               style: { bottom: '140px', right: '24px', maxHeight: '60vh', overflowY: 'auto' },
@@ -1118,16 +1123,16 @@ window.__ModuleLoader__.load({
               h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' } },
                 h('span', { style: { fontWeight: 600, fontSize: '13px' } }, `${detailItems.length} 条注释`),
                 h('button', { type: 'button', className: 'dsh-pa-secondary-btn', style: { padding: '2px 8px', fontSize: '11px' }, onClick: () => setDetails(null) }, '关闭')),
-              detailItems.length === 0 ? h('div', { style: { fontSize: '12px', color: '#d32f2f' } }, '注释数据不可用') : null,
+              detailItems.length === 0 ? h('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-state-error-primary, light-dark(#d32f2f, #ff6b6b))' } }, '注释数据不可用') : null,
               detailItems.map((item, index) => h('div', {
                 key: index,
-                style: { display: 'flex', flexDirection: 'column', gap: '4px', paddingTop: '8px', borderTop: '1px solid var(--dsw-alias-border-l2, #eee)' },
+                style: { display: 'flex', flexDirection: 'column', gap: '4px', paddingTop: '8px', borderTop: '1px solid var(--dsw-alias-border-l2, light-dark(#eee, rgba(255,255,255,0.12)))' },
               },
                 h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' } },
                   h('span', { className: 'dsh-pa-tag' }, '<' + item.element.tag + '>'),
                   details.readOnly ? null : h('button', { type: 'button', className: 'dsh-pa-secondary-btn', style: { padding: '2px 8px', fontSize: '11px' }, onClick: () => removeAnnotation(index) }, '删除')),
                 h('div', { style: { fontSize: '12px', whiteSpace: 'pre-wrap' } }, item.requirement),
-                h('code', { style: { fontSize: '10px', wordBreak: 'break-all', color: 'var(--dsw-alias-label-secondary, #666)' } }, item.element.selector),
+                h('code', { style: { fontSize: '10px', wordBreak: 'break-all', color: 'var(--dsw-alias-label-secondary, light-dark(#666, #a0a4ad))' } }, item.element.selector),
                 item.image ? h('img', { src: item.image, alt: item.element.selector, style: { maxHeight: '100px', objectFit: 'contain', alignSelf: 'flex-start', borderRadius: '6px' } }) : null))) : null);
         }
 
